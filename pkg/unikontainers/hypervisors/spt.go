@@ -18,7 +18,6 @@ import (
 	"os/exec"
 
 	"github.com/urunc-dev/urunc/pkg/unikontainers/types"
-	"golang.org/x/sys/unix"
 )
 
 const (
@@ -27,42 +26,12 @@ const (
 )
 
 type SPT struct {
-	binaryPath string
-	binary     string
-}
-
-func (s *SPT) Signal(pid int, signal unix.Signal) error {
-	return signalProcess(pid, signal)
-}
-
-// Stop kills the spt process
-func (s *SPT) Stop(pid int) error {
-	return killProcess(pid)
+	solo5Tender
 }
 
 // UsesKVM returns a bool value depending on if the monitor uses KVM
 func (s *SPT) UsesKVM() bool {
 	return false
-}
-
-// UsesTUNTAP reports that the guest gets its network through a tap device.
-func (s *SPT) UsesTUNTAP() bool {
-	return true
-}
-
-// SupportsSharedfs returns a bool value depending on the monitor support for shared-fs
-func (s *SPT) SupportsSharedfs(_ string) bool {
-	return false
-}
-
-// SupportsControlSocket reports that SPT exposes no control socket.
-func (s *SPT) SupportsControlSocket() bool {
-	return false
-}
-
-// Path returns the path to the spt binary.
-func (s *SPT) Path() string {
-	return s.binaryPath
 }
 
 // Ok checks if the spt binary is available in the system's PATH.
@@ -71,28 +40,6 @@ func (s *SPT) Ok() error {
 		return ErrVMMNotInstalled
 	}
 	return nil
-}
-
-func (s *SPT) BuildExecCmd(args types.ExecArgs, ukernel types.Unikernel) ([]string, error) {
-	sptMem := BytesToStringMB(args.MemSizeB)
-	exArgs := []string{s.binaryPath, "--mem=" + sptMem}
-	if args.Net.TapDev != "" {
-		netCli := ukernel.MonitorNetCli(args.Net.TapDev, args.Net.MAC)
-		exArgs = append(exArgs, netCli...)
-	}
-	bArgs := ukernel.MonitorBlockCli()
-	for _, blockArg := range bArgs {
-		if blockArg.Path != "" {
-			exArgs = append(exArgs, "--block:"+blockArg.ID+"="+blockArg.Path)
-		}
-	}
-	extraMonArgs := ukernel.MonitorCli()
-	exArgs = append(exArgs, extraMonArgs.OtherArgs...)
-	exArgs = append(exArgs, solo5ArgsSeparator, args.UnikernelPath)
-	if args.Command != "" {
-		exArgs = append(exArgs, args.Command)
-	}
-	return exArgs, nil
 }
 
 // PreExec performs pre-execution setup. SPT has no special pre-exec requirements.

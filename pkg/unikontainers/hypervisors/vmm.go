@@ -39,13 +39,13 @@ var vmmFactories = map[VmmType]VMMFactory{
 	SptVmm: {
 		binary: SptBinary,
 		createFunc: func(binary, binaryPath string, _ bool) types.VMM {
-			return &SPT{binary: binary, binaryPath: binaryPath}
+			return &SPT{solo5Tender{binary: binary, binaryPath: binaryPath}}
 		},
 	},
 	HvtVmm: {
 		binary: HvtBinary,
 		createFunc: func(binary, binaryPath string, _ bool) types.VMM {
-			return &HVT{binary: binary, binaryPath: binaryPath}
+			return &HVT{solo5Tender{binary: binary, binaryPath: binaryPath}}
 		},
 	},
 	QemuVmm: {
